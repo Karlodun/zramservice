@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# find all enabled zram swaps
+# for i in $(for j in $(cat /proc/swaps|grep /dev/zram); do echo $j|grep zram; done) do swapoff $i; done
+
+swapoff /dev/zram0
+echo 0 > /sys/class/zram-control/hot_remove

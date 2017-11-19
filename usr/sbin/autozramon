@@ -1,0 +1,115 @@
+#!/bin/bash
+# load and parse config file
+# need: mem_reserved, mem_pool_share, swap config if any
+source /etc/autozram/init.conf
+# memory is fetched in K, zram is configured in byte.
+# simplified conversion rate between mem suffixes (1000)
+# swap_max_mem=4000000
+# swap_pool_share=100
+
+## runtime functions ##
+function runtime_drop {
+	# just in case the file isn't there
+	touch /run/autozram/drivesmap
+	# drop line with variable if there
+	echo $(cat /run/autozram/drivesmap | grep -v $1) > /run/autozram/drivesmap
+}
+
+function runtime_set {
+	# just in case the file isn't there
+	touch /run/autozram/drivesmap
+	runtime_drop $1
+	# append new value
+	echo "$1=$2" >> /run/autozram/drivesmap
+}
+
+function runtime_get {
+	export $(cat /run/autozram/drivesmap | grep $1)
+}
+
+function zrive {
+    # hot adds and configs new zram drive
+	# zrive needs:
+	# 1. drive_name 2. filesystem 3. size
+	# 4. max_mem_size 5. mount_point
+	
+	# get available pool from runtime
+	runtime_get pool
+	# check if pool is sufficient, exit if not
+	if [pool < max_mem_size]
+	then
+        # maybe add some action to signal bad configuration
+		return 0
+	fi
+    
+    # add drive
+	drive_slot=$(cat /sys/class/zram-control/hot_add)
+
+	# Set disksize, this value has nothing to do with real ram used!
+	echo "$3"K > /sys/block/zram"$drive_slot"/disksize
+	# Set memory limit usage
+	echo "$4"K > /sys/block/zram"$drive_slot"/mem_limit
+
+	# update runtime
+	runtime_set "pool" $(pool-$4) # new ram pool size
+	runtime_set $1 $drive_slot
+	# create filesystem
+	mkfs."$2" /dev/zram"$drive_slot"
+	# mount fs
+	mount /dev/zram"$drive_slot" $5
+}
+
+# get total amount of system RAM
+mem_a=$(grep MemTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')
+
+# calculate pool, fetch in kb and transform to bytes (*1000)
+mem_pool=$(( $((mem_a > 2*mem_reserved ? mem_a - mem_reserved : mem_a / 2)) * mem_pool_share * 10 ))
+
+# save pool to runtime directory
+runtime_set(mem_pool, $mem_pool)
+# load zram module with 0 devices, we'll hot add for each configured one
+modprobe zram num_devices=0
+
+# if swap is (appropriatelly) configured, calculate zram_swap_limit
+# size will be equal to memory pool times 2
+# independent wether other drives are configured or not
+
+# check swap pool share and convert to swap mem
+if [[ 0 < $swap_pool_share ]]; then
+  # fix swap_pool share if too big
+  swap_pool_share=$(( $swap_pool_share > 100 ? 100 : $swap_pool_share ))
+  zram_swap_limit=$(( pool * swap_pool_share * 10 ))
+fi
+
+# now check if swap_max_mem is set
+# compare to zram_swap_limit and choose biggest plausible
+if [[ 0 < $swap_max_mem ]]; then
+  # fix swap_pool share if too big
+  zram_swap_limit=$(( swap_max_mem*1000 > pool ? $zram_swap_limit : swap_max_mem*1000 ))
+fi
+
+zram_swap_limit= $(( $swap_pool_share > 100 ? 100 : $swap_pool_share ))
+
+# hot add device
+zram_swap=$(cat /sys/class/zram-control/hot_add)
+
+# Set disksize, this value has nothing to do with real ram used!
+echo "$mem_a"K > /sys/block/zram$(zram_swap)/disksize
+# Set memory limit usage
+echo "$zram_swap_limit" > /sys/block/zram"$zram_swap"/mem_limit
+
+# update runtime
+runtime_set "pool" $(pool-zram_swap) # new ram pool size
+runtime_set "swap" $zram_swap
+
+# Create swap filesystem
+mkswap /dev/zram"$zram_swap"
+# Switch the swap on
+swapon -p 100 /dev/zram"$zram_swap"
+
+# not yet implemented
+# push disk configs [disk0..diskN] to autozramcreate
+# drives can be created as long as mem_pool is not exchausted, a max of 4 drives is suggested
+# less drives are better
+# zrive needs: name(usage) filesystem size max_mem_size mount_point
+

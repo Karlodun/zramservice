@@ -1,0 +1,22 @@
+# /lib/systemd/system/zramswap.service
+#
+# Copyright (c) Mihail Gershkovich, <Mihail.Gershkovich@gmail.com>
+# config for ressource limits: /etc/autozram/init.conf
+# includes max prozessor, reserved ram, % of non-rezerved ram
+# config for mounts: /etc/autozram/drives.conf
+# uses specific format
+# status directory (RuntimeDirectory): /run/autozram/
+
+[Unit]
+Description=Automatically creates and mounts compressed in memory drives (zram)
+After=multi-user.target
+
+[Service]
+Type=oneshot
+RuntimeDirectory=autozram
+ExecStart=/usr/sbin/autozramon
+ExecStop=/usr/sbin/autozramoff
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

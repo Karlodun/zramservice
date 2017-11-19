@@ -1,0 +1,14 @@
+# runtime example
+pool=2000000  # 2gb RAM, in kb
+
+# after swap created:
+pool=1000000  # 1gb RAM, in kb
+swap=0 # configured swap device
+
+# after additional drives created:
+pool=0  # 0gb RAM, in kb
+swap=0  # configured swap device
+temp=1  # e.x /tmp/ folder with 500MB max ram
+srvupload=2  # e.x. /srv/www/upload with 500MB max ram usage
+
+# no additional drives will be autocreated, since pool is exhausted
