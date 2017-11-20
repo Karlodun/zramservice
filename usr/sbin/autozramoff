@@ -1,7 +1,12 @@
 #!/bin/bash
 
-# find all enabled zram swaps
-# for i in $(for j in $(cat /proc/swaps|grep /dev/zram); do echo $j|grep zram; done) do swapoff $i; done
+# find all enabled zram swaps, we kill them all
+for i in $(for j in $(cat /proc/swaps|grep /dev/zram); do echo $j|grep zram; done) do swapoff $i; done
 
-swapoff /dev/zram0
-echo 0 > /sys/class/zram-control/hot_remove
+# now kill all other drives:
+while read LINE;
+do
+    zram_drive=(("$LINE"|cut -d= -f2))  # get drive number
+    umount /dev/zram"$zram_drive"
+    echo $zram_drive > /sys/class/zram-control/hot_remove
+done < /run/autozram/drivesmap

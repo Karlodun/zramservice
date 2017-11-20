@@ -51,7 +51,7 @@ function zrive {
 	echo "$4"K > /sys/block/zram"$drive_slot"/mem_limit
 
 	# update runtime
-	runtime_set "pool" $(pool-$4) # new ram pool size
+    echo $(( mem_pool-$4 )) > /run/autozram/mem_pool  # new ram pool size
 	runtime_set $1 $drive_slot
 	# create filesystem
 	mkfs."$2" /dev/zram"$drive_slot"
@@ -65,8 +65,8 @@ mem_a=$(grep MemTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')
 # calculate pool, fetch in kb and transform to bytes (*1000)
 mem_pool=$(( $((mem_a > 2*mem_reserved ? mem_a - mem_reserved : mem_a / 2)) * mem_pool_share * 10 ))
 
-# save pool to runtime directory
-runtime_set(mem_pool, $mem_pool)
+# save mem_pool to runtime directory
+echo $mem_pool > /run/autozram/mem_pool
 # load zram module with 0 devices, we'll hot add for each configured one
 modprobe zram num_devices=0
 
@@ -78,14 +78,14 @@ modprobe zram num_devices=0
 if [[ 0 < $swap_pool_share ]]; then
   # fix swap_pool share if too big
   swap_pool_share=$(( $swap_pool_share > 100 ? 100 : $swap_pool_share ))
-  zram_swap_limit=$(( pool * swap_pool_share * 10 ))
+  zram_swap_limit=$(( mem_pool * swap_pool_share * 10 ))
 fi
 
 # now check if swap_max_mem is set
 # compare to zram_swap_limit and choose biggest plausible
 if [[ 0 < $swap_max_mem ]]; then
   # fix swap_pool share if too big
-  zram_swap_limit=$(( swap_max_mem*1000 > pool ? $zram_swap_limit : swap_max_mem*1000 ))
+  zram_swap_limit=$(( swap_max_mem*1000 > mem_pool ? $zram_swap_limit : swap_max_mem*1000 ))
 fi
 
 zram_swap_limit= $(( $swap_pool_share > 100 ? 100 : $swap_pool_share ))
@@ -99,8 +99,10 @@ echo "$mem_a"K > /sys/block/zram$(zram_swap)/disksize
 echo "$zram_swap_limit" > /sys/block/zram"$zram_swap"/mem_limit
 
 # update runtime
-runtime_set "pool" $(pool-zram_swap) # new ram pool size
-runtime_set "swap" $zram_swap
+echo $(( mem_pool-zram_swap_limit)) > /run/autozram/mem_pool # new ram pool size
+# no need to add swap drive to runtime (and it may cause errors on shutdown)
+# we'll kill all zram swap partitions on shutdown
+# there should be a max of one anyways
 
 # Create swap filesystem
 mkswap /dev/zram"$zram_swap"
