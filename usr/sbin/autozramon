@@ -27,6 +27,15 @@ function runtime_get {
 	export $(cat /run/autozram/drivesmap | grep $1)
 }
 
+## drives.conf parser and zrive function ##
+# function zriveparse {
+#    # will parse the /etc/autozram/drives.conf into associative arrays
+#    while read line
+#    do
+#        
+#    done </etc/autozram/drives.conf
+#}
+
 function zrive {
     # hot adds and configs new zram drive
 	# zrive needs:
@@ -114,4 +123,8 @@ swapon -p 100 /dev/zram"$zram_swap"
 # drives can be created as long as mem_pool is not exchausted, a max of 4 drives is suggested
 # less drives are better
 # zrive needs: name(usage) filesystem size max_mem_size mount_point
+while read line
+do
+    zrive $line    
+done </etc/autozram/drives.conf
 
