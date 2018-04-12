@@ -22,12 +22,11 @@ License:        GPL-2.0
 Summary:        Systemd service for zram swap
 Url:            https://www.kernel.org/doc/Documentation/blockdev/zram.txt
 Group:          System/Daemons
-Source0:        systemd-autozram-service-0.1.tar.bz2
-Source1:        autozramon
-Source2:        autozramonoff
+Source0:        systemd-autozram-service-0.2.tar.bz2
+Source1:        autozramon.sh
+Source2:        autozramoff.sh
 Source3:        autozramon.service
-Source4:        init.conf
-Source5:        drives.conf
+Source4:        autozram.conf
 BuildRequires:  systemd
 Requires:       systemd
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -51,6 +50,7 @@ mkdir -p %{buildroot}%{_sbindir}
 install -m 0755 %{S:1} %{S:2} %{buildroot}%{_sbindir}/
 mkdir -p %{buildroot}%{_unitdir}
 install -m 0644 %{S:3} %{buildroot}%{_unitdir}/
+install -m 0644 %{S:4} %{buildroot}/etc/
 
 %pre
 %service_add_pre autozram.service
@@ -67,7 +67,7 @@ install -m 0644 %{S:3} %{buildroot}%{_unitdir}/
 %files
 %defattr(-,root,root,-)
 #%doc README.md
-%{_sbindir}/zramswap*
-%{_unitdir}/zramswap.service
+%{_sbindir}/autozram*
+%{_unitdir}/autozram.service
 
 %changelog
