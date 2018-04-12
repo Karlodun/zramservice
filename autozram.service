@@ -1,18 +1,9 @@
 # /lib/systemd/system/zramswap.service
 #
 # Copyright (c) Mihail Gershkovich, <Mihail.Gershkovich@gmail.com>
-# config for ressource limits: /etc/autozram/init.conf
-# includes max prozessor, reserved ram, % of non-rezerved ram
-# config for mounts: /etc/autozram/drives.conf
-# uses specific format
+# config file: /etc/autozram.conf
 # status directory (RuntimeDirectory): /run/autozram/
-#
-# warning:
-# unsafe config parser
-# 
-# todo:
-# create appropriate and safe config parser for init.conf and drives.conf
-# maybe fuse both confs into one
+# TODO: interactive configurator or yast module
 
 [Unit]
 Description=Automatically creates and mounts compressed in memory drives (zram)
