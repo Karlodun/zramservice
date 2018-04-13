@@ -12,8 +12,8 @@ After=multi-user.target
 [Service]
 Type=oneshot
 RuntimeDirectory=autozram
-ExecStart=/usr/sbin/autozramon.sh
-ExecStop=/usr/sbin/autozramoff.sh
+ExecStart=/usr/sbin/autozramon
+ExecStop=/usr/sbin/autozramoff
 RemainAfterExit=yes
 
 [Install]
