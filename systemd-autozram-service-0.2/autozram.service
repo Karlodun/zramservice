@@ -1,0 +1,20 @@
+# /lib/systemd/system/zramswap.service
+#
+# Copyright (c) Mihail Gershkovich, <Mihail.Gershkovich@gmail.com>
+# config file: /etc/autozram.conf
+# status directory (RuntimeDirectory): /run/autozram/
+# TODO: interactive configurator or yast module
+
+[Unit]
+Description=Automatically creates and mounts compressed in memory drives (zram)
+After=multi-user.target
+
+[Service]
+Type=oneshot
+RuntimeDirectory=autozram
+ExecStart=/usr/sbin/autozramon.sh
+ExecStop=/usr/sbin/autozramoff.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
