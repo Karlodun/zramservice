@@ -23,9 +23,9 @@ Summary:        Systemd service for zram swap
 Url:            https://www.kernel.org/doc/Documentation/blockdev/zram.txt
 Group:          System/Daemons
 Source0:        systemd-autozram-service-0.2.tar.bz2
-Source1:        autozramon.sh
-Source2:        autozramoff.sh
-Source3:        autozramon.service
+Source1:        autozramon
+Source2:        autozramoff
+Source3:        autozram.service
 Source4:        autozram.conf
 BuildRequires:  systemd
 Requires:       systemd
@@ -37,7 +37,7 @@ Creates a compressed in-memory swap device based on zram technology.
 This version creates one drive with multiple compression streams
 And fair limitation on memory consumption. (Disksize <> max memory consumed).
 Default compression: lzo (est. compression ratio 2:1)
-Alternative or complimentary to swap on persistant devices like hdd or ssd.
+Alternative or complimentary to swap on persistent devices like hdd or ssd.
 
 %prep
 %setup -q -n systemd-autozram-service-%{version}
@@ -50,6 +50,7 @@ mkdir -p %{buildroot}%{_sbindir}
 install -m 0755 %{S:1} %{S:2} %{buildroot}%{_sbindir}/
 mkdir -p %{buildroot}%{_unitdir}
 install -m 0644 %{S:3} %{buildroot}%{_unitdir}/
+mkdir -p %{buildroot}/etc/
 install -m 0644 %{S:4} %{buildroot}/etc/
 
 %pre
@@ -69,5 +70,6 @@ install -m 0644 %{S:4} %{buildroot}/etc/
 #%doc README.md
 %{_sbindir}/autozram*
 %{_unitdir}/autozram.service
+%config(noreplace) /etc/autozram.conf
 
 %changelog
