@@ -11,10 +11,5 @@ Plausible memory usage:
 Under the assumption that a configuration provides memory pool share and fixed value limits, the script will take the biggest one that would fit into pool, or maximum pool size otherwise.
 
 # script fixes wrong configuration values
-# and subsets working defaults if needed
-# and converts the values to 1000's multipliers
-# this way we'll 'automagically' convert mem pool to byte
-
-TODO:
-- interactive configurator
-- memory prefixes (MB, GB, TB ...)
+# subsets working defaults if needed
+# converts the values to byte (1000 is used as multiplier, not 1024)

@@ -1,8 +1,8 @@
 # /lib/systemd/system/zramswap.service
 #
 # Copyright (c) Mihail Gershkovich, <Mihail.Gershkovich@gmail.com>
-# config file: /etc/autozram.conf
-# status directory (RuntimeDirectory): /run/autozram/
+# config file: /etc/zramservice.conf
+# status directory (RuntimeDirectory): /run/zramservice/
 # TODO: interactive configurator or yast module
 
 [Unit]
@@ -11,9 +11,9 @@ After=multi-user.target
 
 [Service]
 Type=oneshot
-RuntimeDirectory=autozram
-ExecStart=/usr/sbin/autozramon
-ExecStop=/usr/sbin/autozramoff
+RuntimeDirectory=zramservice
+ExecStart=/usr/sbin/zramon
+ExecStop=/usr/sbin/zramoff
 RemainAfterExit=yes
 
 [Install]

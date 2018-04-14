@@ -1,7 +1,7 @@
 #
 # spec file for package systemd-autozram-service
 #
-# Copyright (c) 2017 Mihail Gershkovich <Mihail.Gershkovich@gmail.com>
+# Copyright (c) 2017-2018 Mihail Gershkovich <Mihail.Gershkovich@gmail.com>
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -15,32 +15,30 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-Name:           systemd-autozram-service
-Version:        0.2
+Name:           zram-systemd-service
+Version:        1
 Release:        1
 License:        GPL-2.0
-Summary:        Systemd service for zram swap
+Summary:        Systemd service for zram drives
 Url:            https://www.kernel.org/doc/Documentation/blockdev/zram.txt
 Group:          System/Daemons
-Source0:        systemd-autozram-service-0.2.tar.bz2
-Source1:        autozramon
-Source2:        autozramoff
-Source3:        autozram.service
-Source4:        autozram.conf
+Source0:        zramservice.tar.bz2
+Source1:        zramon
+Source2:        zramoff
+Source3:        zram.service
+Source4:        zramservice.conf
 BuildRequires:  systemd
 Requires:       systemd
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+BuildRoot:      %{_tmppath}/%{name}-build
 BuildArch:      noarch
 
 %description
-Creates a compressed in-memory swap device based on zram technology.
-This version creates one drive with multiple compression streams
-And fair limitation on memory consumption. (Disksize <> max memory consumed).
+Creates compressed in-memory drives with zram as systemd service.
+Can create swap and normal drives.
 Default compression: lzo (est. compression ratio 2:1)
-Alternative or complimentary to swap on persistent devices like hdd or ssd.
 
 %prep
-%setup -q -n systemd-autozram-service-%{version}
+%setup -q -n zramservice
 
 %build
 # No building required, just a placehoder.
@@ -54,22 +52,22 @@ mkdir -p %{buildroot}/etc/
 install -m 0644 %{S:4} %{buildroot}/etc/
 
 %pre
-%service_add_pre autozram.service
+%service_add_pre zram.service
 
 %post
-%service_add_post autozram.service
+%service_add_post zram.service
 
 %preun
-%service_del_preun autozram.service
+%service_del_preun zram.service
 
 %postun
-%service_del_postun autozram.service
+%service_del_postun zram.service
 
 %files
 %defattr(-,root,root,-)
 #%doc README.md
-%{_sbindir}/autozram*
-%{_unitdir}/autozram.service
-%config(noreplace) /etc/autozram.conf
+%{_sbindir}/zramo*
+%{_unitdir}/zram.service
+%config(noreplace) /etc/zramservice.conf
 
 %changelog
