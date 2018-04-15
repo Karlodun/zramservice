@@ -15,7 +15,7 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-Name:           zram-systemd-service
+Name:           zramservice
 Version:        1
 Release:        1
 License:        GPL-2.0
