@@ -35,7 +35,8 @@ BuildArch:      noarch
 %description
 Creates compressed in-memory drives with zram as systemd service.
 Can create swap and normal drives.
-Default compression: lzo (est. compression ratio 2:1)
+Uses default compression.
+Service comes preconfigured with a swap partition and is auto-enabled and auto-started.
 
 %prep
 %setup -q -n zramservice

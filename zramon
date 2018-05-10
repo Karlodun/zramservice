@@ -1,14 +1,14 @@
 #!/bin/bash
 # create runtime directory and files
-mkdir /run/zramservice/
+mkdir -p /run/zramservice/
 touch /run/zramservice/swap /run/zramservice/mounts
 # load zram module with 0 devices, we'll hot add for each configured one
 modprobe zram num_devices=0
 # get total amount of system RAM in M
-mem_a=$(grep MemTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')/1024
+mem_a=$(( $(grep MemTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')/1024 ))
 
 # read config and calculate memory pool available for all zram drives
-mem_pool=$((3*mem_a/4))  # fallback value in case of bad or missing configuration
+mem_pool=$((mem_a-500))  # fallback value in case of bad or missing configuration
 while IFS=$': \n\t\r' read -r var val
 do
     case "$var" in
@@ -24,21 +24,14 @@ while IFS=$': \n\t\r' read -r var val
 do
   if (( 50 > mem_pool )); then break; fi  # not enough memory_pool available for further disks
   case "$var" in
-  drive ) drive_name=$val  ;;
-  mount ) mount_path=$val  ;;
-  fs )    file_system=$val ;;
-  size )
-    drive_size=$(( 0 < val && mem_pool*4 > val ? val : mem_pool*2))
-    echo "config size: $val, calculated size: $drive_size"
-    ;;
-  max_mem )
+  drive )   drive_name=$val  ;;
+  mount )   mount_path=$val  ;;
+  fs )      file_system=$val ;;
+  size )    drive_size=$(( 0 < val && mem_pool*4 > val ? val : mem_pool*2)) ;;
+  max_mem ) fix_val=$(( 0 < val && val < mem_pool-50 ? val : mem_pool))  ;;
     # mem_pool-50 enforces to deplete memory pool, if less then 50M would be left after next init
-    fix_val=$(( 0 < val && val < mem_pool-50 ? val : mem_pool))
-    ;;
-  max_pool_share ) share_val=$(( 0 < val && val <= 100 ? mem_pool*val/100 : mem_pool))
-    ;;
-  clear ) unset drive_name mount_path file_system drive_size drive_max_mem drive_max_share      
-    ;;
+  max_pool_share ) share_val=$(( 0 < val && val <= 100 ? mem_pool*val/100 : mem_pool))  ;;
+  clear ) unset drive_name mount_path file_system drive_size drive_max_mem drive_max_share  ;;
   init )
     if ! [[ -d "$mount_path" || "swap" == "$val" ]]; then  # abort if no mount point or not swap
       echo "bad mount point, drive $drive_name" | systemd-cat -t zramservice -p warning
@@ -46,6 +39,8 @@ do
     fi
     # choose higher memory limit according to configuration
     mem_limit=$(( share_val > fix_val ? share_val : fix_val))
+    #check drive_size and fix if needed
+    drive_size=$(( 0 < drive_size && mem_a*4 > drive_size ? drive_size : mem_limit*4))
 
     drive_id=$(cat /sys/class/zram-control/hot_add)  # hot add device
     echo "$drive_size"M > /sys/block/zram"$drive_id"/disksize  # set size and initialize

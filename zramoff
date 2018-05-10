@@ -17,4 +17,4 @@ do
 done < /run/zramservice/mounts
 
 # delete runtime directory
-rm -r /run/zramservice/
+# rm -r /run/zramservice/
