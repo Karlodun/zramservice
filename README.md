@@ -10,6 +10,6 @@ If zram_swap is (appropriatelly) configured, drive size will be equal to 2 * mem
 Plausible memory usage:
 Under the assumption that a configuration provides memory pool share and fixed value limits, the script will take the biggest one that would fit into pool, or maximum pool size otherwise.
 
-# script fixes wrong configuration values
-# subsets working defaults if needed
-# converts the values to byte (1000 is used as multiplier, not 1024)
+-script fixes wrong configuration values
+-uses working fallback values if needed
+-converts the values to byte (1000 is used as multiplier, not 1024)
