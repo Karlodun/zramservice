@@ -7,6 +7,7 @@ do
   echo "$id" > /sys/class/zram-control/hot_remove
   echo "zram swap id$id removed" | systemd-cat -t zramservice -p info
 done < /run/zramservice/swap
+rm /run/zramservice/swap
 
 # now kill all other drives:
 while read -r id;
@@ -15,6 +16,4 @@ do
   echo "$id" > /sys/class/zram-control/hot_remove
   echo "zram drive id$id removed" | systemd-cat -t zramservice -p info
 done < /run/zramservice/mounts
-
-# delete runtime directory
-# rm -r /run/zramservice/
+rm /run/zramservice/mounts

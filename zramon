@@ -4,20 +4,34 @@ mkdir -p /run/zramservice/
 touch /run/zramservice/swap /run/zramservice/mounts
 # load zram module with 0 devices, we'll hot add for each configured one
 modprobe zram num_devices=0
-# get total amount of system RAM in M
-mem_a=$(( $(grep MemTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')/1024 ))
+
+# get total amount of system RAM, already existing SWAP in M and max swap priority
+mem_available=$(( $(grep MemTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')/1024 ))
+swap_other=$(( $(grep SwapTotal /proc/meminfo | grep -E --only-matching '[[:digit:]]+')/1024 ))
+swap_prio_max=$(swapon --show=prio | awk '{if(NR>1)print}' | awk 'BEGIN { max = -inf } { if ($1 > max) { max = $1; line = $0 } } END { print line }' )
+swap_prio_max=$(( swap_prio_max > 32767 ? 32767 : swap_prio_max ))  # ceiling for swap priority
 
 # read config and calculate memory pool available for all zram drives
-mem_pool=$((mem_a-500))  # fallback value in case of bad or missing configuration
+stable_pool=1 # fallback value to 
+mem_pool=$((mem_available-500))  # fallback value in case of bad or missing configuration and non existing fallback
 while IFS=$': \n\t\r' read -r var val
 do
+echo " $var : $val "
     case "$var" in
+    stable_pool )
+        stable_pool=$val
+	      ;;
     mem_reserved )
         # calculate usable pool in M
-        mem_pool=$(( 0 < val && mem_a > val*2 ? mem_a - val : mem_pool ))
+        mem_pool=$(( 0 < val && mem_available > val*2 ? mem_available - val : mem_pool ))
         ;;
     esac
 done < /etc/zramservice.conf
+
+if ((1 -eq $val)); then
+  # ceiling for mem_pool, depending on available swap. ensures stable config.
+  mem_pool=$(( mem_pool > (mem_available/2 + swap_other) ? (mem_available/2 + swap_other) : mem_pool ))
+fi
 
 # creating drives
 while IFS=$': \n\t\r' read -r var val
@@ -40,7 +54,7 @@ do
     # choose higher memory limit according to configuration
     mem_limit=$(( share_val > fix_val ? share_val : fix_val))
     #check drive_size and fix if needed
-    drive_size=$(( 0 < drive_size && mem_a*4 > drive_size ? drive_size : mem_limit*4))
+    drive_size=$(( 0 < drive_size && mem_available*4 > drive_size ? drive_size : mem_limit*4))
 
     drive_id=$(cat /sys/class/zram-control/hot_add)  # hot add device
     echo "$drive_size"M > /sys/block/zram"$drive_id"/disksize  # set size and initialize
@@ -50,7 +64,7 @@ do
     case "$val" in
     swap )
       mkswap /dev/zram"$drive_id" # Create swap filesystem
-      swapon -p 100 /dev/zram"$drive_id" # Switch the swap on
+      swapon -p $((swap_prio_max)) /dev/zram"$drive_id" # Switch the swap on
       echo "$drive_id" >> /run/zramservice/swap  # save to runtime
       echo 'zram swap ready' | systemd-cat -t zramservice -p info
       ;;

@@ -1,7 +1,7 @@
 #
 # spec file for package systemd-autozram-service
 #
-# Copyright (c) 2017-2018 Mihail Gershkovich <Mihail.Gershkovich@gmail.com>
+# Copyright (c) 2017-2019 Mihail Gershkovich <Mihail.Gershkovich@gmail.com>
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -16,7 +16,7 @@
 #
 
 Name:           zramservice
-Version:        1
+Version:        1.2
 Release:        1
 License:        GPL-2.0
 Summary:        Systemd service for zram drives
@@ -34,9 +34,8 @@ BuildArch:      noarch
 
 %description
 Creates compressed in-memory drives with zram as systemd service.
-Can create swap and normal drives.
-Uses default compression.
-Service comes preconfigured with a swap partition and is auto-enabled and auto-started.
+Can create swap and normal drives. Includes default values and stable options.
+Default compression: lzo (est. compression ratio 2:1)
 
 %prep
 %setup -q -n zramservice
