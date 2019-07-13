@@ -27,7 +27,7 @@ Source1:        zramon
 Source2:        zramoff
 Source3:        zram.service
 Source4:        zramservice.conf
-BuildRequires:  systemd
+#BuildRequires:  systemd
 Requires:       systemd
 BuildRoot:      %{_tmppath}/%{name}-build
 BuildArch:      noarch
