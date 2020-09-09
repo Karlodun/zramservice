@@ -1,5 +1,8 @@
 The scipt automatically choose best settings for zram drives and their purpose using the conf files. 
 
+the config file is located under: /etc/zramservice.conf
+it should be self explanatory and does provide a zram swap drive per default.
+
 Memory is fetched in MB from conf files, zram requires byte, initialiser will convert automatically
 A simplified conversion rate between mem suffixes (1000)
 
